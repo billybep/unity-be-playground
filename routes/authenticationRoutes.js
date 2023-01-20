@@ -3,8 +3,11 @@ const Account = mongoose.model('accounts')
 
 module.exports = app => {
   // Routes
-  app.get('/account', async(req, res) =>  {
-    const { username, password } = req.query
+
+  // ---- LOGIN
+  app.post('/account/login', async(req, res) =>  {
+    console.log(req.body);
+    const { username, password } = req.body
 
     if (username == null || password == null) {
       res.send("Invalid credential")
@@ -12,6 +15,35 @@ module.exports = app => {
     }
 
     let userAccount = await Account.findOne({ username: username })
+    console.log(userAccount);
+    if (userAccount !== null) {
+      //! in prod should hash the password
+      if (password == userAccount.password) {
+        userAccount.lastAuthentication = Date.now()
+        await userAccount.save()
+  
+        console.log("Retrieving account...");
+        res.send(userAccount)
+        return
+      }
+    }
+
+    res.send("Invalid credential")
+    console.log("Invalid credential")
+    return
+  })
+
+  // ---- REGISTER
+  app.post('/account/register', async(req, res) =>  {
+    console.log(req.body);
+    const { username, password } = req.body
+
+    if (username == null || password == null) {
+      res.send("Invalid credential")
+      return
+    }
+
+    let userAccount = await Account.findOne({ username })
 
     if (userAccount == null) {
       // Create new account
@@ -29,18 +61,9 @@ module.exports = app => {
       res.send(newAccount)
       return
     } else {
-      //! in prod should hash the password
-      if (password == userAccount.password) {
-        userAccount.lastAuthentication = Date.now()
-        await userAccount.save()
-
-        console.log("Retrieving account...");
-        res.send(userAccount)
-        return
-      }
+      res.send("Username has been registered")
+      console.log("User has been registered")
     }
-
-    res.send("Invalid credential")
     return
   })
 }

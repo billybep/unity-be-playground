@@ -3,6 +3,9 @@ const keys = require('./config/keys.js')
 
 const app = express()
 
+// Setup body parser
+app.use(express.urlencoded({extended: true}))
+
 // Setup MongoDB
 const mongoose = require('mongoose')
 mongoose.set('strictQuery', false)
